@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeapBoxd • Social commuter discovery for Dublin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+        :root {
+            --lb-bg: #14181c;
+            --lb-panel: #2c3440;
+            --lb-text-main: #99aabb;
+            --lb-text-light: #def;
+            --lb-text-dark: #899aa9;
+            --lb-green: #00e054;
+            --lb-blue: #40bcf4;
+            --lb-orange: #ff8000;
+        }
+
+        body {
+            background-color: var(--lb-bg);
+            color: var(--lb-text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--lb-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--lb-panel); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #45505e; }
+
+        /* Typography & Links */
+        h1, h2, h3, h4, .title-text { color: var(--lb-text-light); }
+        a { color: var(--lb-text-main); transition: color 0.15s ease; }
+        a:hover { color: #fff; }
+
+        /* Navigation */
+        .site-header {
+            background-color: #1a2127; /* Slightly darker than panel */
+            border-bottom: 1px solid #232a31;
+        }
+
+        .nav-link {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.075em;
+            text-transform: uppercase;
+        }
+
+        /* The Poster Grid */
+        .poster {
+            aspect-ratio: 2 / 3;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+            border: 1px solid transparent;
+            transition: all 0.2s ease-in-out;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* The classic Letterboxd green hover border */
+        .poster:hover {
+            border-color: var(--lb-green);
+            box-shadow: 0 0 10px rgba(0,224,84,0.4);
+        }
+        
+        .poster-overlay {
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        /* Specific Bus Posters */
+        .bus-46a { background: linear-gradient(135deg, #0f4c81, #f5d04c); }
+        .bus-15  { background: linear-gradient(to bottom, #d32f2f, #111); }
+        .bus-140 { background: linear-gradient(135deg, #333, #555); opacity: 0.6; filter: blur(0.5px); }
+        .bus-39a { background: linear-gradient(45deg, #2e7d32, #ffeb3b); }
+        .bus-c1  { background: linear-gradient(to top, #1a237e, #000000); }
+        .bus-g1  { background: linear-gradient(135deg, #00838f, #80deea); }
+
+        .route-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+            z-index: 10;
+        }
+        .route-dest {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.8);
+            margin-top: 4px;
+            text-align: center;
+            padding: 0 8px;
+            z-index: 10;
+        }
+
+        /* Review Styles */
+        .review-panel {
+            border-bottom: 1px solid var(--lb-panel);
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--lb-panel);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--lb-text-light);
+            font-size: 14px;
+        }
+        .stars { color: var(--lb-green); font-size: 14px; letter-spacing: 1px; }
+        
+        .btn-green {
+            background-color: var(--lb-green);
+            color: #fff;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.05em;
+            padding: 8px 16px;
+            border-radius: 3px;
+            transition: background-color 0.1s;
+        }
+        .btn-green:hover { background-color: #00c048; color: #fff;}
+
+        /* Modals */
+        #logModal { display: none; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="site-header py-4 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between sticky top-0 z-50">
+        <div class="flex items-center gap-2 mb-4 md:mb-0 cursor-pointer">
+            <!-- Logo Dots -->
+            <div class="flex gap-1">
+                <div class="w-3 h-3 rounded-full" style="background-color: var(--lb-green)"></div>
+                <div class="w-3 h-3 rounded-full" style="background-color: var(--lb-orange)"></div>
+                <div class="w-3 h-3 rounded-full" style="background-color: var(--lb-blue)"></div>
+            </div>
+            <!-- Logo Text -->
+            <h1 class="text-2xl font-bold tracking-tight text-white m-0 leading-none">LeapBoxd</h1>
+        </div>
+
+        <nav class="flex items-center gap-6">
+            <a href="#" class="nav-link hover:text-white">Sign In</a>
+            <a href="#" class="nav-link hover:text-white">Create Account</a>
+            <a href="#" class="nav-link hover:text-white">Buses</a>
+            <a href="#" class="nav-link hover:text-white">Lists</a>
+            <div class="relative">
+                <input type="text" placeholder="Search routes, stops, users..." class="bg-[#2c3440] text-sm text-white px-3 py-1.5 rounded-full outline-none border border-transparent focus:border-[#40bcf4] focus:bg-[#343e4b] transition-all w-48 lg:w-64">
+                <svg class="w-4 h-4 absolute right-3 top-2 text-[#899aa9]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-6 py-12">
+        
+        <!-- Hero Section -->
+        <section class="text-center mb-16 max-w-2xl mx-auto">
+            <h2 class="text-3xl font-bold mb-4 title-text">Track routes you've ridden.<br>Save those you want to ride.<br>Warn your friends what's terrible.</h2>
+            <p class="text-lg mb-8 text-[#899aa9]">The social network for the Dublin commuter. Log your journeys, rate the drivers, and survive the winter timetable.</p>
+            <button onclick="document.getElementById('logModal').style.display='flex'" class="btn-green text-sm px-6 py-3 shadow-[0_0_15px_rgba(0,224,84,0.3)]">
+                + Log a Journey
+            </button>
+        </section>
+
+        <!-- Popular Routes Grid -->
+        <section class="mb-16">
+            <div class="flex justify-between items-end border-b border-[#2c3440] pb-2 mb-4">
+                <h3 class="text-sm font-semibold uppercase tracking-wider text-[#899aa9]">Popular Routes Right Now</h3>
+                <a href="#" class="text-xs uppercase tracking-wider hover:text-white">More</a>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <!-- Poster 1 -->
+                <div class="group relative">
+                    <div class="poster bus-46a">
+                        <span class="route-number">46A</span>
+                        <span class="route-dest">Phoenix Pk - Dún Laoghaire</span>
+                        <div class="poster-overlay"></div>
+                    </div>
+                    <div class="absolute -bottom-6 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span class="stars">★★★★½</span>
+                    </div>
+                </div>
+                
+                <!-- Poster 2 -->
+                <div class="group relative">
+                    <div class="poster bus-15">
+                        <span class="route-number">15</span>
+                        <span class="route-dest">Ballycullen - Clongriffin</span>
+                        <div class="poster-overlay"></div>
+                    </div>
+                    <div class="absolute -bottom-6 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span class="stars text-[#ff8000]">★★</span>
+                    </div>
+                </div>
+
+                <!-- Poster 3 (Ghost Bus) -->
+                <div class="group relative">
+                    <div class="poster bus-140">
+                        <span class="route-number">140</span>
+                        <span class="route-dest text-[#ff8000]">Ghost Bus</span>
+                        <div class="poster-overlay"></div>
+                    </div>
+                    <div class="absolute -bottom-6 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span class="stars text-red-500">½</span>
+                    </div>
+                </div>
+
+                <!-- Poster 4 -->
+                <div class="group relative">
+                    <div class="poster bus-39a">
+                        <span class="route-number">39A</span>
+                        <span class="route-dest">Ongar - UCD Belfield</span>
+                        <div class="poster-overlay"></div>
+                    </div>
+                    <div class="absolute -bottom-6 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span class="stars">★★★</span>
+                    </div>
+                </div>
+
+                <!-- Poster 5 -->
+                <div class="group relative">
+                    <div class="poster bus-c1">
+                        <span class="route-number">C1</span>
+                        <span class="route-dest">Adamstown - Sandymount</span>
+                        <div class="poster-overlay"></div>
+                    </div>
+                    <div class="absolute -bottom-6 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span class="stars">★★★★</span>
+                    </div>
+                </div>
+
+                <!-- Poster 6 -->
+                <div class="group relative">
+                    <div class="poster bus-g1">
+                        <span class="route-number">G1</span>
+                        <span class="route-dest">Red Cow - Spencer Dock</span>
+                        <div class="poster-overlay"></div>
+                    </div>
+                    <div class="absolute -bottom-6 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span class="stars text-[#ff8000]">★★½</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Reviews & Popular Lists -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+            
+            <!-- Reviews Column -->
+            <section class="md:col-span-2">
+                <div class="flex justify-between items-end border-b border-[#2c3440] pb-2 mb-4">
+                    <h3 class="text-sm font-semibold uppercase tracking-wider text-[#899aa9]">Recent Reviews</h3>
+                    <a href="#" class="text-xs uppercase tracking-wider hover:text-white">More</a>
+                </div>
+
+                <!-- Review 1 -->
+                <div class="review-panel flex gap-4">
+                    <div class="w-16 h-24 flex-shrink-0">
+                        <div class="poster bus-46a w-full h-full"><span class="text-xl font-bold text-white">46A</span></div>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h4 class="text-lg font-bold title-text leading-none">The 46A <span class="text-sm font-normal text-[#899aa9]">(Southbound)</span></h4>
+                        </div>
+                        <div class="flex items-center gap-2 mb-2 text-sm text-[#899aa9]">
+                            <span>Review by</span>
+                            <div class="flex items-center gap-1 text-white hover:text-[#40bcf4] cursor-pointer">
+                                <div class="avatar bg-blue-900 w-5 h-5 text-[10px]">SK</div>
+                                <strong>SouthsideKing</strong>
+                            </div>
+                            <span class="stars">★★★★½</span>
+                        </div>
+                        <p class="text-[15px] leading-relaxed mb-3">
+                            "Secured the top deck front seat. Gazed out over the peasants walking down D’Olier Street. Felt like the king of the world. Pacing was excellent until we hit Donnybrook, where the narrative really ground to a halt. Points deducted because a lad in a North Face jacket watched TikToks on full volume for 40 minutes. A timeless classic, but flawed."
+                        </p>
+                        <div class="flex items-center gap-4 text-[#899aa9] text-sm font-bold">
+                            <button class="flex items-center gap-1 hover:text-white transition-colors"><svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg> 245</button>
+                            <button class="flex items-center gap-1 hover:text-white transition-colors"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"></path></svg> 12</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review 2 -->
+                <div class="review-panel flex gap-4">
+                    <div class="w-16 h-24 flex-shrink-0">
+                        <div class="poster bus-140 w-full h-full"><span class="text-xl font-bold text-white z-10">140</span></div>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h4 class="text-lg font-bold title-text leading-none">The 140 <span class="text-sm font-normal text-[#899aa9]">(Ghost Bus)</span></h4>
+                        </div>
+                        <div class="flex items-center gap-2 mb-2 text-sm text-[#899aa9]">
+                            <span>Review by</span>
+                            <div class="flex items-center gap-1 text-white hover:text-[#40bcf4] cursor-pointer">
+                                <div class="avatar bg-gray-600 w-5 h-5 text-[10px]">RC</div>
+                                <strong>RainSoaked</strong>
+                            </div>
+                            <span class="stars text-red-500">½</span>
+                        </div>
+                        <p class="text-[15px] leading-relaxed mb-3">
+                            "Waited 45 minutes on Parnell Square. The real-time sign flashed '2 mins', then 'Due', and then quietly blinked into the abyss. The bus never materialized. A masterful, existential piece of surrealist performance art by Transport for Ireland. I am shivering."
+                        </p>
+                        <div class="flex items-center gap-4 text-[#899aa9] text-sm font-bold">
+                            <button class="flex items-center gap-1 hover:text-white transition-colors"><svg class="w-4 h-4 hover:text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg> 892</button>
+                            <button class="flex items-center gap-1 hover:text-white transition-colors"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"></path></svg> 145</button>
+                        </div>
+                    </div>
+                </div>
+
+                 <!-- Review 3 -->
+                 <div class="review-panel flex gap-4 border-none">
+                    <div class="w-16 h-24 flex-shrink-0">
+                        <div class="poster bus-15 w-full h-full"><span class="text-xl font-bold text-white">15</span></div>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h4 class="text-lg font-bold title-text leading-none">The 15 <span class="text-sm font-normal text-[#899aa9]">(3:00 AM)</span></h4>
+                        </div>
+                        <div class="flex items-center gap-2 mb-2 text-sm text-[#899aa9]">
+                            <span>Review by</span>
+                            <div class="flex items-center gap-1 text-white hover:text-[#40bcf4] cursor-pointer">
+                                <div class="avatar bg-red-900 w-5 h-5 text-[10px]">NN</div>
+                                <strong>NightShiftNed</strong>
+                            </div>
+                            <span class="stars text-[#ff8000]">★★</span>
+                        </div>
+                        <p class="text-[15px] leading-relaxed mb-3">
+                            "A gritty, visceral reboot of Mad Max. The lighting was fluorescent and unforgiving. The ensemble cast included two lads having a deeply emotional argument and a woman who read a hardback novel out loud to no one. Truly immersive, avant-garde cinema. Not for the faint of heart."
+                        </p>
+                        <div class="flex items-center gap-4 text-[#899aa9] text-sm font-bold">
+                            <button class="flex items-center gap-1 hover:text-white transition-colors"><svg class="w-4 h-4 hover:text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg> 56</button>
+                            <button class="flex items-center gap-1 hover:text-white transition-colors"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"></path></svg> 3</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sidebar -->
+            <aside>
+                <div class="flex justify-between items-end border-b border-[#2c3440] pb-2 mb-4">
+                    <h3 class="text-sm font-semibold uppercase tracking-wider text-[#899aa9]">Trending Lists</h3>
+                </div>
+                
+                <div class="flex flex-col gap-4">
+                    <!-- List 1 -->
+                    <div class="group cursor-pointer">
+                        <h4 class="text-white group-hover:text-[#40bcf4] font-bold mb-1 transition-colors">Buses to take when you want to question reality</h4>
+                        <div class="flex items-center gap-2 text-xs text-[#899aa9] mb-2">
+                            <div class="avatar bg-purple-700 w-4 h-4 text-[8px]">EC</div>
+                            <span>ExistentialCrisis</span>
+                            <span class="flex items-center"><svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg> 1.2k</span>
+                        </div>
+                        <div class="flex -space-x-2">
+                            <div class="w-8 h-12 poster bus-140 border border-[#2c3440]"></div>
+                            <div class="w-8 h-12 poster bus-15 border border-[#2c3440]"></div>
+                            <div class="w-8 h-12 poster bus-39a border border-[#2c3440]"></div>
+                            <div class="w-8 h-12 poster bus-c1 border border-[#2c3440]"></div>
+                            <div class="w-8 h-12 poster bus-g1 border border-[#2c3440]"></div>
+                        </div>
+                    </div>
+
+                    <!-- List 2 -->
+                    <div class="group cursor-pointer mt-4">
+                        <h4 class="text-white group-hover:text-[#40bcf4] font-bold mb-1 transition-colors">The 'Heater on in July' Collection</h4>
+                        <div class="flex items-center gap-2 text-xs text-[#899aa9] mb-2">
+                            <div class="avatar bg-orange-600 w-4 h-4 text-[8px]">SB</div>
+                            <span>SweatyBetty</span>
+                            <span class="flex items-center"><svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg> 845</span>
+                        </div>
+                        <div class="flex -space-x-2">
+                            <div class="w-8 h-12 poster bus-46a border border-[#2c3440]"></div>
+                            <div class="w-8 h-12 poster bus-g1 border border-[#2c3440]"></div>
+                            <div class="w-8 h-12 poster bus-39a border border-[#2c3440]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Panel -->
+                <div class="mt-8 bg-[#2c3440] p-4 rounded-md">
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-[#899aa9] mb-3 border-b border-[#45505e] pb-2">Your Weekly Stats</h3>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-white">Driver "Thank You" Ratio</span>
+                        <span class="text-sm font-bold text-[#00e054]">92%</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-white">Ghost Buses Encountered</span>
+                        <span class="text-sm font-bold text-[#ff8000]">3</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-white">Time Waiting in Rain</span>
+                        <span class="text-sm font-bold text-[#40bcf4]">4h 12m</span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#1a2127] py-8 text-center text-[13px] text-[#899aa9]">
+        <div class="flex justify-center gap-4 mb-4">
+            <a href="#" class="hover:text-white">About</a>
+            <a href="#" class="hover:text-white">Pro</a>
+            <a href="#" class="hover:text-white">API</a>
+            <a href="#" class="hover:text-white">TFI Complaints Dept.</a>
+            <a href="#" class="hover:text-white">Terms</a>
+        </div>
+        <p>© 2026 LeapBoxd Limited. Made by Dubliners who missed the last bus.</p>
+    </footer>
+
+    <!-- Log Modal (Simple Demo) -->
+    <div id="logModal" class="fixed inset-0 bg-black bg-opacity-80 z-[100] flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-[#2c3440] p-6 rounded-md w-full max-w-md shadow-2xl border border-[#45505e]">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-white">I Watched... sorry, I Rode...</h2>
+                <button onclick="document.getElementById('logModal').style.display='none'" class="text-[#899aa9] hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-[#899aa9] mb-1">Route Number</label>
+                    <input type="text" placeholder="e.g. 15, 46A, N4" class="w-full bg-[#14181c] border border-[#45505e] rounded p-2 text-white outline-none focus:border-[#00e054]">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-[#899aa9] mb-1">Date</label>
+                    <input type="date" class="w-full bg-[#14181c] border border-[#45505e] rounded p-2 text-white outline-none focus:border-[#00e054]">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-[#899aa9] mb-1">Vibe Tags</label>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-[#14181c] px-2 py-1 rounded text-xs cursor-pointer hover:bg-[#45505e] border border-[#45505e]">Top Deck Front</span>
+                        <span class="bg-[#14181c] px-2 py-1 rounded text-xs cursor-pointer hover:bg-[#45505e] border border-[#45505e]">Ghost Bus</span>
+                        <span class="bg-[#14181c] px-2 py-1 rounded text-xs cursor-pointer hover:bg-[#45505e] border border-[#45505e]">Heater On</span>
+                        <span class="bg-[#14181c] px-2 py-1 rounded text-xs cursor-pointer hover:bg-[#45505e] border border-[#45505e]">+ Add Tag</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-[#899aa9] mb-1">Review</label>
+                    <textarea rows="3" placeholder="How was the journey?" class="w-full bg-[#14181c] border border-[#45505e] rounded p-2 text-white outline-none focus:border-[#00e054] resize-none"></textarea>
+                </div>
+                
+                <div class="flex items-center justify-between mt-6 pt-4 border-t border-[#45505e]">
+                    <div class="text-2xl cursor-pointer tracking-widest text-[#45505e] hover:text-[#00e054] transition-colors">★★★★★</div>
+                    <button onclick="document.getElementById('logModal').style.display='none'; alert('Journey logged to your diary!')" class="btn-green">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
