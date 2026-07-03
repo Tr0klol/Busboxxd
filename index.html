@@ -62,14 +62,6 @@
             pointer-events: none;
         }
 
-        .bus-generic { background: linear-gradient(135deg, #2c3440, #45505e); }
-        .bus-46a { background: linear-gradient(135deg, #0f4c81, #f5d04c); }
-        .bus-15  { background: linear-gradient(to bottom, #d32f2f, #111); }
-        .bus-140 { background: linear-gradient(135deg, #333, #555); opacity: 0.8; filter: blur(0.5px); }
-        .bus-39a { background: linear-gradient(45deg, #2e7d32, #ffeb3b); }
-        .bus-c1  { background: linear-gradient(to top, #1a237e, #000000); }
-        .bus-g1  { background: linear-gradient(135deg, #00838f, #80deea); }
-
         .review-card {
             background-color: #1a2127;
             border: 1px solid #2c3440;
@@ -134,7 +126,7 @@
 <body class="antialiased pb-20">
 
     <header class="site-header py-4 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between sticky top-0 z-50">
-        <div class="flex items-center gap-2 mb-4 md:mb-0 cursor-pointer">
+        <div class="flex items-center gap-2 mb-4 md:mb-0 cursor-pointer" onclick="window.location.reload()">
             <div class="flex gap-1">
                 <div class="w-3 h-3 rounded-full" style="background-color: var(--bb-green)"></div>
                 <div class="w-3 h-3 rounded-full" style="background-color: var(--bb-orange)"></div>
@@ -152,7 +144,6 @@
 
     <main class="max-w-5xl mx-auto px-6 py-8">
         
-        <!-- Active Routes Grid -->
         <section class="mb-12">
             <div class="flex justify-between items-end border-b border-[#2c3440] pb-2 mb-4">
                 <h3 class="text-sm font-semibold uppercase tracking-wider text-[#899aa9]">Recently Active Routes</h3>
@@ -168,21 +159,19 @@
                     <h3 class="text-sm font-semibold uppercase tracking-wider text-[#899aa9]">Recent Community Reviews</h3>
                 </div>
 
+                <div id="filter-indicator" class="hidden"></div>
+                
                 <div id="feed-container">
                     <div class="animate-pulse flex space-x-4">
                         <div class="rounded bg-[#2c3440] h-24 w-16"></div>
                         <div class="flex-1 space-y-4 py-1">
                             <div class="h-4 bg-[#2c3440] rounded w-3/4"></div>
-                            <div class="space-y-2">
-                                <div class="h-4 bg-[#2c3440] rounded"></div>
-                                <div class="h-4 bg-[#2c3440] rounded w-5/6"></div>
-                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <div id="empty-feed-msg" class="hidden text-center py-12 bg-[#1a2127] rounded-lg border border-[#2c3440] mt-4">
-                    <p class="text-[#899aa9] mb-4">The feed is empty! Be the first to log a journey.</p>
+                    <p class="text-[#899aa9] mb-4">No reviews found for this route yet.</p>
                 </div>
             </section>
 
@@ -207,30 +196,19 @@
                         <span class="text-sm text-white">Average Rating</span>
                         <span id="stat-rating" class="text-sm font-bold text-[#00e054]">0.0</span>
                     </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-white">Ghost Buses</span>
-                        <span id="stat-ghosts" class="text-sm font-bold text-[#ff8000]">0</span>
-                    </div>
                 </div>
             </aside>
         </div>
     </main>
 
-    <!-- Username Modal -->
     <div id="usernameModal" class="fixed inset-0 bg-black bg-opacity-80 z-[100] flex items-center justify-center backdrop-blur-sm hidden">
         <div class="bg-[#2c3440] p-8 rounded-md w-full max-w-sm shadow-2xl border border-[#45505e] text-center">
-            <div class="w-12 h-12 bg-[#1a2127] rounded-full flex items-center justify-center mx-auto mb-4 border border-[#45505e]">
-                <span class="text-xl">🚌</span>
-            </div>
             <h2 class="text-xl font-bold text-white mb-2">Welcome to BusBoxxd</h2>
-            <p class="text-sm text-[#899aa9] mb-6">Choose a username to start logging your journeys with the community.</p>
-            
-            <input type="text" id="username-input" placeholder="Enter username..." class="w-full bg-[#14181c] border border-[#45505e] rounded p-3 text-white outline-none focus:border-[#00e054] mb-4 text-center font-bold">
+            <input type="text" id="username-input" placeholder="Enter username..." class="w-full bg-[#14181c] border border-[#45505e] rounded p-3 text-white outline-none mb-4 text-center font-bold">
             <button onclick="saveUsername()" class="btn-green w-full py-3 text-sm">Start Logging</button>
         </div>
     </div>
 
-    <!-- Log Journey Modal -->
     <div id="logModal" class="fixed inset-0 bg-black bg-opacity-80 z-[100] flex items-center justify-center backdrop-blur-sm hidden">
         <div class="bg-[#2c3440] p-6 rounded-md w-full max-w-md shadow-2xl border border-[#45505e] max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6 border-b border-[#45505e] pb-3">
@@ -243,23 +221,10 @@
                     <label class="block text-xs font-semibold uppercase tracking-wider text-[#899aa9] mb-1.5">Route Number</label>
                     <input type="text" id="route-input" placeholder="e.g. 15, 46A, N4" class="w-full bg-[#14181c] border border-[#45505e] rounded p-2.5 text-white outline-none focus:border-[#00e054] uppercase font-bold">
                 </div>
-                
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-[#899aa9] mb-1.5">Vibe Tags</label>
-                    <div class="flex flex-wrap gap-2" id="tags-container">
-                        <button onclick="toggleTag('Late', this)" class="tag-btn bg-[#14181c] px-3 py-1.5 rounded text-xs cursor-pointer hover:bg-[#45505e] border border-[#45505e] text-white transition-colors">Late</button>
-                        <button onclick="toggleTag('Ghost Bus', this)" class="tag-btn bg-[#14181c] px-3 py-1.5 rounded text-xs cursor-pointer hover:bg-[#45505e] border border-[#45505e] text-white transition-colors">Ghost Bus</button>
-                        <button onclick="toggleTag('Crowded', this)" class="tag-btn bg-[#14181c] px-3 py-1.5 rounded text-xs cursor-pointer hover:bg-[#45505e] border border-[#45505e] text-white transition-colors">Crowded</button>
-                        <button onclick="toggleTag('Clean', this)" class="tag-btn bg-[#14181c] px-3 py-1.5 rounded text-xs cursor-pointer hover:bg-[#45505e] border border-[#45505e] text-white transition-colors">Clean</button>
-                        <button onclick="toggleTag('Top Deck Front', this)" class="tag-btn bg-[#14181c] px-3 py-1.5 rounded text-xs cursor-pointer hover:bg-[#45505e] border border-[#45505e] text-white transition-colors">Top Deck Front</button>
-                    </div>
-                </div>
-
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-[#899aa9] mb-1.5">Review</label>
                     <textarea id="review-input" rows="3" placeholder="How was the journey?" class="w-full bg-[#14181c] border border-[#45505e] rounded p-2.5 text-white outline-none focus:border-[#00e054] resize-none"></textarea>
                 </div>
-                
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2 pt-4 border-t border-[#45505e]">
                     <div>
                         <label class="block text-[10px] font-semibold uppercase tracking-wider text-[#899aa9] mb-1">Rating</label>
@@ -284,7 +249,6 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // YOUR Real Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBS2oBGJmDaxiBjMo45tznE7JfNjOe4va0",
             authDomain: "busboxxd.firebaseapp.com",
@@ -299,113 +263,80 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Application State
         const state = {
             reviews: [],
             currentUser: null,
-            username: ''
+            username: '',
+            filterRoute: null
+        };
+
+        window.setFilter = (route) => {
+            state.filterRoute = route;
+            renderFeed();
+            renderActiveRoutes();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.clearFilter = () => {
+            state.filterRoute = null;
+            renderFeed();
+            renderActiveRoutes();
         };
 
         function getPosterStyle(route) {
             const r = (route || '').toLowerCase().trim();
-            // Keep the classics
-            if (r === '46a') return 'background: linear-gradient(135deg, #0f4c81, #f5d04c);';
-            if (r === '15') return 'background: linear-gradient(to bottom, #d32f2f, #111);';
-            if (r === '140') return 'background: linear-gradient(135deg, #333, #555); opacity: 0.9;';
-            if (r === '39a') return 'background: linear-gradient(45deg, #2e7d32, #ffeb3b);';
-            if (r === 'c1') return 'background: linear-gradient(to top, #1a237e, #000000);';
-            if (r === 'g1') return 'background: linear-gradient(135deg, #00838f, #80deea);';
-
-            // Generate a vibrant, deterministic gradient for EVERY other bus route
             const colors = [
                 ['#FF416C', '#FF4B2B'], ['#4776E6', '#8E54E9'], ['#00B4DB', '#0083B0'],
                 ['#f12711', '#f5af19'], ['#8E2DE2', '#4A00E0'], ['#11998e', '#38ef7d'],
                 ['#F2994A', '#F2C94C'], ['#E55D87', '#5FC3E4'], ['#b92b27', '#1565C0'],
                 ['#2980B9', '#6DD5FA'], ['#FF0099', '#493240'], ['#800080', '#ffc0cb']
             ];
-            
             let hash = 0;
-            for (let i = 0; i < r.length; i++) {
-                hash = r.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            const index = Math.abs(hash) % colors.length;
-            const [c1, c2] = colors[index];
-            
+            for (let i = 0; i < r.length; i++) hash = r.charCodeAt(i) + ((hash << 5) - hash);
+            const [c1, c2] = colors[Math.abs(hash) % colors.length];
             return `background: linear-gradient(135deg, ${c1}, ${c2});`;
-        }
-
-        function generateStarsHTML(rating) {
-            const r = rating || 0;
-            return '★'.repeat(r) + '<span class="text-[#45505e]">' + '★'.repeat(5 - r) + '</span>';
-        }
-
-        function renderPostersHTML(route, rating) {
-            return `
-                <div class="poster w-full h-full shadow-md flex flex-col justify-center items-center" style="${getPosterStyle(route)}">
-                    <span class="text-xl font-bold text-white z-10">${(route || '?').toUpperCase()}</span>
-                    <div class="poster-overlay"></div>
-                </div>
-            `;
-        }
-
-        function formatDate(ts) {
-            if (!ts) return '';
-            const d = new Date(ts);
-            return d.toLocaleDateString('en-IE', { month: 'short', day: 'numeric' });
         }
 
         function renderFeed() {
             const container = document.getElementById('feed-container');
             const emptyMsg = document.getElementById('empty-feed-msg');
+            const filterInd = document.getElementById('filter-indicator');
             
-            if (state.reviews.length === 0) {
+            let filteredReviews = state.reviews;
+            if (state.filterRoute) {
+                filteredReviews = filteredReviews.filter(r => r.route === state.filterRoute);
+                filterInd.innerHTML = `<div class="bg-[#2c3440] p-3 mb-4 rounded flex justify-between items-center text-sm text-white border border-[#45505e]">
+                    <span>Viewing reviews for <b>Route ${state.filterRoute}</b></span>
+                    <button onclick="clearFilter()" class="text-xs text-[#899aa9] hover:text-white underline">Clear Filter</button>
+                </div>`;
+                filterInd.classList.remove('hidden');
+            } else {
+                filterInd.classList.add('hidden');
+            }
+
+            if (filteredReviews.length === 0) {
                 container.innerHTML = '';
                 emptyMsg.classList.remove('hidden');
                 return;
             }
             emptyMsg.classList.add('hidden');
             
-            container.innerHTML = state.reviews.map(review => {
-                const tagHTML = (review.tags || []).map(t => `<span class="inline-block bg-[#2c3440] border border-[#45505e] text-[10px] px-2 py-1 rounded mr-1.5 mb-1.5 text-[#def] font-medium tracking-wide shadow-sm">${t}</span>`).join('');
-                const initial = (review.username || '?').charAt(0).toUpperCase();
-                
-                // Likes Logic
-                const likesArray = review.likedBy || [];
-                const likeCount = likesArray.length;
-                const isLiked = state.currentUser && likesArray.includes(state.currentUser.uid);
-                
-                const heartSvg = isLiked 
-                    ? `<svg class="w-5 h-5 text-red-500 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
-                    : `<svg class="w-5 h-5 text-[#899aa9] fill-none stroke-current stroke-2 hover:text-red-400 transition-colors" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>`;
-
+            container.innerHTML = filteredReviews.map(review => {
+                const isLiked = state.currentUser && (review.likedBy || []).includes(state.currentUser.uid);
                 return `
                 <div class="review-card flex flex-col sm:flex-row gap-5">
-                    <div class="w-16 h-24 flex-shrink-0 mx-auto sm:mx-0">
-                        ${renderPostersHTML(review.route, review.rating)}
+                    <div class="w-16 h-24 flex-shrink-0 mx-auto sm:mx-0 poster flex flex-col justify-center items-center" style="${getPosterStyle(review.route)}">
+                        <span class="text-lg font-bold text-white z-10">${review.route}</span>
                     </div>
-                    <div class="flex-1 flex flex-col">
+                    <div class="flex-1">
                         <div class="flex justify-between items-start mb-1">
-                            <div class="flex items-center gap-2">
-                                <h4 class="text-xl font-bold title-text leading-none">Route ${review.route}</h4>
-                                <span class="stars">${generateStarsHTML(review.rating)}</span>
-                            </div>
-                            <span class="text-xs text-[#45505e] font-medium">${formatDate(review.timestamp)}</span>
+                            <h4 class="text-xl font-bold text-white">Route ${review.route}</h4>
+                            <span class="stars">${'★'.repeat(review.rating)}${'<span class="text-[#45505e]">★</span>'.repeat(5-review.rating)}</span>
                         </div>
-                        <div class="flex items-center gap-2 mb-3 text-sm text-[#899aa9]">
-                            <div class="flex items-center gap-1.5 text-white">
-                                <div class="avatar shadow-sm">${initial}</div>
-                                <strong>${review.username || 'Anonymous'}</strong>
-                            </div>
-                        </div>
-                        ${review.text ? `<p class="text-[15px] leading-relaxed mb-4 text-[#def]">"${review.text}"</p>` : ''}
-                        <div class="mb-2">${tagHTML}</div>
-                        
-                        <div class="mt-auto pt-3 border-t border-[#232a31] flex items-center">
-                            <button onclick="toggleLike('${review.id}')" class="like-btn flex items-center gap-1.5 text-[#899aa9] text-sm font-bold transition-colors ${isLiked ? 'text-red-500' : 'hover:text-white'}">
-                                ${heartSvg}
-                                <span>${likeCount > 0 ? likeCount : 'Like'}</span>
-                            </button>
-                        </div>
+                        <p class="text-[15px] leading-relaxed mb-3 text-[#def]">"${review.text}"</p>
+                        <button onclick="toggleLike('${review.id}')" class="like-btn flex items-center gap-1.5 text-sm font-bold ${isLiked ? 'text-red-500' : 'text-[#899aa9]'}">
+                            ♥ ${review.likedBy?.length || 0}
+                        </button>
                     </div>
                 </div>
                 `;
@@ -414,211 +345,69 @@
 
         function renderActiveRoutes() {
             const grid = document.getElementById('active-routes-grid');
-            const uniqueRoutes = [];
-            const seen = new Set();
+            const uniqueRoutes = [...new Set(state.reviews.map(r => r.route))].slice(0, 6);
             
-            for (const review of state.reviews) {
-                if (!seen.has(review.route) && review.route) {
-                    seen.add(review.route);
-                    uniqueRoutes.push(review);
-                    if (uniqueRoutes.length >= 6) break;
-                }
-            }
-            
-            if (uniqueRoutes.length === 0) {
-                grid.innerHTML = '<p class="text-sm text-[#899aa9] col-span-full">No active routes yet.</p>';
-                return;
-            }
-
-            grid.innerHTML = uniqueRoutes.map(review => {
-                return `
-                <div class="group relative">
-                    <div class="w-full h-32 md:h-40 rounded-md shadow-md flex flex-col justify-center items-center border border-transparent hover:border-[#00e054] transition-all cursor-pointer" style="${getPosterStyle(review.route)}">
-                        <span class="text-2xl md:text-3xl font-bold text-white z-10">${(review.route || '?').toUpperCase()}</span>
-                        <div class="absolute inset-0 border border-white/10 rounded-md pointer-events-none"></div>
-                    </div>
-                    <div class="absolute -bottom-6 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span class="stars text-sm">${generateStarsHTML(review.rating)}</span>
+            grid.innerHTML = uniqueRoutes.map(route => `
+                <div class="cursor-pointer group" onclick="setFilter('${route}')">
+                    <div class="poster w-full h-32 flex flex-col justify-center items-center ${state.filterRoute === route ? 'ring-2 ring-[#00e054]' : ''}" style="${getPosterStyle(route)}">
+                        <span class="text-2xl font-bold text-white">${route}</span>
                     </div>
                 </div>
-                `;
-            }).join('');
+            `).join('');
         }
 
-        function updateStats() {
-            document.getElementById('stat-total').innerText = state.reviews.length;
-            
-            let totalRating = 0;
-            let ghostCount = 0;
-            
-            state.reviews.forEach(r => {
-                totalRating += (r.rating || 0);
-                if (r.tags && r.tags.includes('Ghost Bus')) ghostCount++;
-            });
-
-            const avg = state.reviews.length ? (totalRating / state.reviews.length).toFixed(1) : 0;
-            document.getElementById('stat-rating').innerText = avg;
-            document.getElementById('stat-ghosts').innerText = ghostCount;
-        }
-
-        let currentRating = 0;
         window.setRating = (rating) => {
             currentRating = rating;
-            const html = '★'.repeat(rating) + '<span class="text-[#45505e]">' + '★'.repeat(5 - rating) + '</span>';
-            document.getElementById('interactive-stars').innerHTML = html;
+            document.getElementById('interactive-stars').innerHTML = '★'.repeat(rating) + '<span class="text-[#45505e]">' + '★'.repeat(5 - rating) + '</span>';
         };
 
-        let selectedTags = [];
-        window.toggleTag = (tagStr, el) => {
-            if(selectedTags.includes(tagStr)) {
-                selectedTags = selectedTags.filter(t => t !== tagStr);
-                el.classList.remove('bg-[#45505e]', 'border-[#00e054]');
-                el.classList.add('bg-[#14181c]', 'border-[#45505e]');
-            } else {
-                selectedTags.push(tagStr);
-                el.classList.remove('bg-[#14181c]', 'border-[#45505e]');
-                el.classList.add('bg-[#45505e]', 'border-[#00e054]');
-            }
-        };
-
-        window.showToast = (message, isError = false) => {
-            const toast = document.getElementById('toast');
-            toast.innerText = message;
-            if(isError) toast.classList.add('error');
-            else toast.classList.remove('error');
-            
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        };
-
+        let currentRating = 0;
         window.saveUsername = () => {
-            const input = document.getElementById('username-input').value.trim();
-            if(input) {
-                localStorage.setItem('busboxxd_username', input);
-                state.username = input;
-                const profileEl = document.getElementById('profile-name');
-                if(profileEl) profileEl.innerText = input;
+            const val = document.getElementById('username-input').value.trim();
+            if(val) {
+                localStorage.setItem('busboxxd_username', val);
+                state.username = val;
+                document.getElementById('profile-name').innerText = val;
                 document.getElementById('usernameModal').style.display = 'none';
-            }
-        };
-
-        document.getElementById('username-input')?.addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') saveUsername();
-        });
-
-        window.toggleLike = async (reviewId) => {
-            if(!state.currentUser) {
-                showToast("Please wait for connection to like journeys.", true);
-                return;
-            }
-            const review = state.reviews.find(r => r.id === reviewId);
-            if(!review) return;
-
-            const isLiked = review.likedBy && review.likedBy.includes(state.currentUser.uid);
-            const reviewRef = doc(db, 'reviews', reviewId);
-
-            try {
-                if (isLiked) {
-                    await updateDoc(reviewRef, { likedBy: arrayRemove(state.currentUser.uid) });
-                } else {
-                    await updateDoc(reviewRef, { likedBy: arrayUnion(state.currentUser.uid) });
-                }
-            } catch (error) {
-                console.error("Error toggling like", error);
-                showToast("Failed to update like.", true);
             }
         };
 
         window.submitReview = async () => {
             const route = document.getElementById('route-input').value.trim().toUpperCase();
             const text = document.getElementById('review-input').value.trim();
-            
-            if(!route || currentRating === 0) {
-                showToast("Route and Rating are required!", true);
-                return;
-            }
-            
-            const reviewData = {
-                userId: state.currentUser.uid,
-                username: state.username || 'Anonymous',
-                route: route,
-                rating: currentRating,
-                text: text,
-                tags: selectedTags,
-                likedBy: [],
-                timestamp: Date.now()
-            };
-
-            try {
-                await addDoc(collection(db, "reviews"), reviewData);
-                document.getElementById('logModal').style.display = 'none';
-                showToast("Journey logged successfully!");
-                
-                // Reset form
-                document.getElementById('route-input').value = '';
-                document.getElementById('review-input').value = '';
-                selectedTags = [];
-                document.querySelectorAll('.tag-btn').forEach(el => {
-                    el.classList.remove('bg-[#45505e]', 'border-[#00e054]');
-                    el.classList.add('bg-[#14181c]', 'border-[#45505e]');
-                });
-                setRating(0);
-            } catch (e) {
-                console.error("Error adding document: ", e);
-                showToast("Error saving journey.", true);
-            }
+            if(!route || currentRating === 0) return alert("All fields required");
+            await addDoc(collection(db, "reviews"), { 
+                userId: state.currentUser.uid, username: state.username, route, rating: currentRating, text, timestamp: Date.now(), likedBy: [] 
+            });
+            document.getElementById('logModal').style.display = 'none';
         };
 
-        function setupRealtimeListener() {
-            const q = query(collection(db, "reviews"), orderBy("timestamp", "desc"));
-            onSnapshot(q, (snapshot) => {
-                const updatedReviews = [];
-                snapshot.forEach((doc) => {
-                    updatedReviews.push({ id: doc.id, ...doc.data() });
+        window.toggleLike = async (id) => {
+            const review = state.reviews.find(r => r.id === id);
+            const ref = doc(db, 'reviews', id);
+            const liked = review.likedBy?.includes(state.currentUser.uid);
+            await updateDoc(ref, { likedBy: liked ? arrayRemove(state.currentUser.uid) : arrayUnion(state.currentUser.uid) });
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                state.currentUser = user;
+                onSnapshot(query(collection(db, "reviews"), orderBy("timestamp", "desc")), (snap) => {
+                    state.reviews = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    renderFeed();
+                    renderActiveRoutes();
+                    document.getElementById('stat-total').innerText = state.reviews.length;
                 });
-                state.reviews = updatedReviews;
-                
-                renderFeed();
-                renderActiveRoutes();
-                updateStats();
-            }, (error) => {
-                console.error("Realtime listener error:", error);
-                document.getElementById('empty-feed-msg').innerText = "Error connecting to feed. Check database rules.";
-                document.getElementById('empty-feed-msg').classList.remove('hidden');
-                document.getElementById('feed-container').innerHTML = '';
-            });
-        }
-
-        async function initApp() {
-            // Check for saved username
-            let storedName = localStorage.getItem('busboxxd_username');
-            if (!storedName) {
-                document.getElementById('usernameModal').style.display = 'flex';
-            } else {
-                state.username = storedName;
-                const profileEl = document.getElementById('profile-name');
-                if(profileEl) profileEl.innerText = storedName;
             }
+        });
 
-            // Handle Authentication and trigger listener
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    state.currentUser = user;
-                    setupRealtimeListener();
-                }
-            });
-
-            // Trigger Anonymous Sign In immediately
-            try {
-                await signInAnonymously(auth);
-            } catch (error) {
-                console.error("Auth error:", error);
-                document.getElementById('profile-name').innerText = "Auth Failed";
-            }
+        signInAnonymously(auth);
+        if(localStorage.getItem('busboxxd_username')) {
+            state.username = localStorage.getItem('busboxxd_username');
+            document.getElementById('profile-name').innerText = state.username;
+        } else {
+            document.getElementById('usernameModal').style.display = 'flex';
         }
-
-        // Start the app!
-        initApp();
     </script>
 </body>
 </html>
