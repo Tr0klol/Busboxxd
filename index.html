@@ -13,6 +13,7 @@
             --bb-panel: #2c3440;
             --bb-text-main: #99aabb;
             --bb-text-light: #def;
+            --bb-text-dark: #899aa9;
             --bb-green: #00e054;
             --bb-blue: #40bcf4;
             --bb-orange: #ff8000;
@@ -30,13 +31,20 @@
         ::-webkit-scrollbar-thumb { background: var(--bb-panel); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #45505e; }
 
-        h1, h2, h3, h4 { color: var(--bb-text-light); }
-        .site-header { background-color: #1a2127; border-bottom: 1px solid #232a31; }
+        h1, h2, h3, h4, .title-text { color: var(--bb-text-light); }
+        a { color: var(--bb-text-main); transition: color 0.15s ease; }
+        a:hover { color: #fff; }
+
+        .site-header {
+            background-color: #1a2127;
+            border-bottom: 1px solid #232a31;
+        }
 
         .poster {
             aspect-ratio: 2 / 3;
             border-radius: 4px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+            border: 1px solid transparent;
             transition: all 0.2s ease-in-out;
             position: relative;
             overflow: hidden;
@@ -44,10 +52,16 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            cursor: pointer;
         }
-        .poster:hover { transform: scale(1.02); }
         
+        .poster-overlay {
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
         .review-card {
             background-color: #1a2127;
             border: 1px solid #2c3440;
@@ -56,8 +70,24 @@
             margin-bottom: 1rem;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-        .review-card:hover { border-color: #45505e; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .review-card:hover { 
+            border-color: #45505e; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+        }
 
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--bb-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--bb-bg);
+            font-size: 12px;
+            flex-shrink: 0;
+        }
         .stars { color: var(--bb-green); font-size: 14px; letter-spacing: 1px; }
         
         .btn-green {
@@ -72,6 +102,9 @@
             transition: background-color 0.1s;
         }
         .btn-green:hover { background-color: #00c048; color: #fff;}
+        
+        .like-btn { transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .like-btn:active { transform: scale(0.85); }
     </style>
 </head>
 <body class="antialiased pb-20">
@@ -79,24 +112,23 @@
     <header class="site-header py-4 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between sticky top-0 z-50">
         <div class="flex items-center gap-2 mb-4 md:mb-0 cursor-pointer" onclick="window.location.reload()">
             <div class="flex gap-1">
-                <div class="w-3 h-3 rounded-full bg-[var(--bb-green)]"></div>
-                <div class="w-3 h-3 rounded-full bg-[var(--bb-orange)]"></div>
-                <div class="w-3 h-3 rounded-full bg-[var(--bb-blue)]"></div>
+                <div class="w-3 h-3 rounded-full" style="background-color: var(--bb-green)"></div>
+                <div class="w-3 h-3 rounded-full" style="background-color: var(--bb-orange)"></div>
+                <div class="w-3 h-3 rounded-full" style="background-color: var(--bb-blue)"></div>
             </div>
             <h1 class="text-2xl font-bold tracking-tight text-white m-0 leading-none">BusBoxxd</h1>
         </div>
 
-        <nav class="flex items-center gap-6">
-            <div class="relative">
-                <input type="text" oninput="setSearch(this.value)" placeholder="Search routes..." class="bg-[#2c3440] text-sm text-white px-4 py-2 rounded-full outline-none border border-transparent focus:border-[var(--bb-blue)] transition-all w-48 lg:w-64">
-            </div>
+        <div class="flex items-center gap-4">
+            <input type="text" id="search-input" oninput="setSearch(this.value)" placeholder="Search reviews..." class="bg-[#1a2127] border border-[#2c3440] text-sm text-white px-4 py-2 rounded-full outline-none focus:border-[var(--bb-green)] w-48 lg:w-64">
             <button onclick="document.getElementById('logModal').style.display='flex'" class="btn-green text-sm px-4 py-2 shadow-[0_0_15px_rgba(0,224,84,0.3)]">
                 + Log Journey
             </button>
-        </nav>
+        </div>
     </header>
 
     <main class="max-w-5xl mx-auto px-6 py-8">
+        
         <section class="mb-12">
             <div class="flex justify-between items-end border-b border-[#2c3440] pb-2 mb-4">
                 <h3 class="text-sm font-semibold uppercase tracking-wider text-[#899aa9]">Recently Active Routes</h3>
@@ -111,7 +143,7 @@
                 </div>
 
                 <div id="filter-indicator" class="hidden"></div>
-                <div id="feed-container"></div>
+                <div id="feed-container" class="space-y-4"></div>
                 <div id="empty-feed-msg" class="hidden text-center py-12 bg-[#1a2127] rounded-lg border border-[#2c3440] mt-4">
                     <p class="text-[#899aa9] mb-4">No reviews found.</p>
                 </div>
@@ -120,11 +152,9 @@
             <aside>
                 <div class="bg-[#2c3440] p-5 rounded-lg border border-[#45505e]">
                     <div class="flex items-center gap-3 mb-6 border-b border-[#45505e] pb-4">
-                        <div class="w-12 h-12 rounded-full bg-[#14181c] border border-[#45505e] flex items-center justify-center text-xl text-white font-bold">
-                            ME
-                        </div>
+                        <div id="profile-avatar" class="avatar">?</div>
                         <div>
-                            <h3 id="profile-name" class="text-white font-bold text-lg leading-none">...</h3>
+                            <h3 id="profile-name" class="text-white font-bold text-lg leading-none">Connecting...</h3>
                             <span class="text-xs text-[#899aa9]">Commuter</span>
                         </div>
                     </div>
@@ -152,26 +182,32 @@
     </div>
 
     <div id="logModal" class="fixed inset-0 bg-black bg-opacity-80 z-[100] flex items-center justify-center backdrop-blur-sm hidden">
-        <div class="bg-[#2c3440] p-6 rounded-md w-full max-w-md border border-[#45505e]">
-            <h2 class="text-lg font-bold text-white mb-4">Log a Journey</h2>
-            <input type="text" id="route-input" placeholder="Route (e.g. 15)" class="w-full bg-[#14181c] p-3 rounded text-white mb-3 border border-[#45505e]">
-            <textarea id="review-input" placeholder="How was it?" class="w-full bg-[#14181c] p-3 rounded text-white mb-3 border border-[#45505e]"></textarea>
-            <div class="flex justify-between items-center mt-4">
-                <div class="text-lg cursor-pointer flex" id="interactive-stars">
-                    <span onclick="setRating(1)" class="text-[#45505e] hover:text-[#00e054]">★</span>
-                    <span onclick="setRating(2)" class="text-[#45505e] hover:text-[#00e054]">★</span>
-                    <span onclick="setRating(3)" class="text-[#45505e] hover:text-[#00e054]">★</span>
-                    <span onclick="setRating(4)" class="text-[#45505e] hover:text-[#00e054]">★</span>
-                    <span onclick="setRating(5)" class="text-[#45505e] hover:text-[#00e054]">★</span>
+        <div class="bg-[#2c3440] p-6 rounded-md w-full max-w-md shadow-2xl border border-[#45505e]">
+            <div class="flex justify-between items-center mb-6 border-b border-[#45505e] pb-3">
+                <h2 class="text-lg font-bold text-white">Log a Journey</h2>
+                <button onclick="document.getElementById('logModal').style.display='none'" class="text-[#899aa9] hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            
+            <div class="space-y-5">
+                <input type="text" id="route-input" placeholder="Route (e.g. 15)" class="w-full bg-[#14181c] border border-[#45505e] rounded p-2.5 text-white outline-none focus:border-[#00e054] uppercase font-bold">
+                <textarea id="review-input" rows="3" placeholder="How was the journey?" class="w-full bg-[#14181c] border border-[#45505e] rounded p-2.5 text-white outline-none focus:border-[#00e054] resize-none"></textarea>
+                <div class="flex items-center justify-between gap-4 mt-2 pt-4 border-t border-[#45505e]">
+                    <div class="text-2xl cursor-pointer tracking-widest flex" id="interactive-stars">
+                        <span onclick="setRating(1)" class="text-[#45505e] hover:text-[#00e054]">★</span>
+                        <span onclick="setRating(2)" class="text-[#45505e] hover:text-[#00e054]">★</span>
+                        <span onclick="setRating(3)" class="text-[#45505e] hover:text-[#00e054]">★</span>
+                        <span onclick="setRating(4)" class="text-[#45505e] hover:text-[#00e054]">★</span>
+                        <span onclick="setRating(5)" class="text-[#45505e] hover:text-[#00e054]">★</span>
+                    </div>
+                    <button onclick="submitReview()" class="btn-green">Save</button>
                 </div>
-                <button onclick="submitReview()" class="btn-green">Post</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -187,55 +223,30 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let state = { reviews: [], username: '', filterRoute: null, searchQuery: '' };
+        const state = { reviews: [], currentUser: null, username: '', filterRoute: null, searchQuery: '' };
         let currentRating = 0;
 
-        window.setRating = (r) => {
-            currentRating = r;
-            document.getElementById('interactive-stars').innerHTML = '★'.repeat(r) + '<span class="text-[#45505e]">' + '★'.repeat(5 - r) + '</span>';
-        };
-
-        window.setSearch = (val) => {
-            state.searchQuery = val.toLowerCase();
-            render();
-        };
-
-        window.setFilter = (route) => {
-            state.filterRoute = route;
-            render();
-        };
-
-        window.clearFilter = () => {
-            state.filterRoute = null;
-            render();
-        };
-
-        window.toggleLike = async (id, likedBy) => {
-            const ref = doc(db, 'reviews', id);
-            if (!state.username) return alert("Pick a username first!");
-            const alreadyLiked = likedBy && likedBy.includes(state.username);
-            await updateDoc(ref, { likedBy: alreadyLiked ? arrayRemove(state.username) : arrayUnion(state.username) });
-        };
+        function getInitials(name) { return name.charAt(0).toUpperCase(); }
 
         function getPosterStyle(route) {
-            let hash = 0;
-            for (let i = 0; i < route.length; i++) hash = route.charCodeAt(i) + ((hash << 5) - hash);
+            let hash = 0; for (let i = 0; i < route.length; i++) hash = route.charCodeAt(i) + ((hash << 5) - hash);
             const hue = Math.abs(hash) % 360;
             return `background: linear-gradient(135deg, hsl(${hue}, 70%, 40%), hsl(${(hue+40)%360}, 70%, 60%));`;
         }
 
-        function render() {
+        window.setSearch = (val) => { state.searchQuery = val.toLowerCase(); renderFeed(); };
+        window.setFilter = (route) => { state.filterRoute = route; renderFeed(); renderActiveRoutes(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+        window.clearFilter = () => { state.filterRoute = null; renderFeed(); renderActiveRoutes(); };
+        window.setRating = (r) => { currentRating = r; document.getElementById('interactive-stars').innerHTML = '★'.repeat(r) + '<span class="text-[#45505e]">' + '★'.repeat(5 - r) + '</span>'; };
+
+        function renderFeed() {
             const container = document.getElementById('feed-container');
             const emptyMsg = document.getElementById('empty-feed-msg');
             const filterInd = document.getElementById('filter-indicator');
             
             let filtered = state.reviews;
             if (state.filterRoute) filtered = filtered.filter(r => r.route === state.filterRoute);
-            if (state.searchQuery) filtered = filtered.filter(r => r.route.toLowerCase().includes(state.searchQuery) || r.text.toLowerCase().includes(state.searchQuery) || (r.username || '').toLowerCase().includes(state.searchQuery));
-
-            document.getElementById('stat-total').innerText = state.reviews.length;
-            const avg = state.reviews.length > 0 ? (state.reviews.reduce((acc, curr) => acc + (curr.rating || 0), 0) / state.reviews.length).toFixed(1) : "0.0";
-            document.getElementById('stat-rating').innerText = avg;
+            if (state.searchQuery) filtered = filtered.filter(r => r.route.toLowerCase().includes(state.searchQuery) || r.text.toLowerCase().includes(state.searchQuery) || (r.username||'').toLowerCase().includes(state.searchQuery));
 
             if (state.filterRoute) {
                 filterInd.innerHTML = `<div class="bg-[#2c3440] p-3 mb-4 rounded flex justify-between items-center text-sm text-white border border-[#45505e]">
@@ -246,61 +257,70 @@
             } else filterInd.classList.add('hidden');
 
             if (filtered.length === 0) { container.innerHTML = ''; emptyMsg.classList.remove('hidden'); }
-            else { emptyMsg.classList.add('hidden'); container.innerHTML = filtered.map(r => `
+            else { emptyMsg.classList.add('hidden'); container.innerHTML = filtered.map(r => {
+                const isLiked = state.currentUser && (r.likedBy || []).includes(state.currentUser.uid);
+                return `
                 <div class="review-card flex gap-4">
-                    <div class="w-12 h-20 poster flex-shrink-0" style="${getPosterStyle(r.route)}">
-                        <span class="text-sm font-bold text-white">${r.route}</span>
+                    <div class="w-16 h-24 flex-shrink-0 poster flex flex-col justify-center items-center" style="${getPosterStyle(r.route)}">
+                        <span class="text-lg font-bold text-white">${r.route}</span>
                     </div>
                     <div class="flex-1">
-                        <div class="flex justify-between items-start mb-1">
-                            <span class="text-xs font-bold text-[#00e054]">${r.username || 'Anonymous'}</span>
-                            <span class="stars">${'★'.repeat(r.rating || 0)}</span>
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="avatar">${getInitials(r.username || 'A')}</div>
+                            <span class="font-bold text-white text-sm">${r.username || 'Anonymous'}</span>
+                            <span class="ml-auto stars">${'★'.repeat(r.rating)}${'<span class="text-[#45505e]">★</span>'.repeat(5-r.rating)}</span>
                         </div>
-                        <p class="text-sm text-[#def] leading-relaxed mb-3">"${r.text}"</p>
-                        <button onclick="toggleLike('${r.id}', ${JSON.stringify(r.likedBy || [])})" class="text-xs font-bold ${r.likedBy?.includes(state.username) ? 'text-red-500' : 'text-[#899aa9]'} hover:text-red-500 transition-colors">
-                            ♥ ${r.likedBy?.length || 0}
-                        </button>
+                        <p class="text-sm text-[#def] mb-3">"${r.text}"</p>
+                        <button onclick="toggleLike('${r.id}')" class="text-xs font-bold ${isLiked ? 'text-red-500' : 'text-[#899aa9]'}">♥ ${r.likedBy?.length || 0}</button>
                     </div>
                 </div>
-            `).join(''); }
+                `;
+            }).join(''); }
+        }
 
+        function renderActiveRoutes() {
+            const grid = document.getElementById('active-routes-grid');
             const routes = [...new Set(state.reviews.map(r => r.route))].slice(0, 6);
-            document.getElementById('active-routes-grid').innerHTML = routes.map(r => `
-                <div class="poster w-full h-32" style="${getPosterStyle(r)}" onclick="setFilter('${r}')">
+            grid.innerHTML = routes.map(r => `
+                <div class="poster w-full" style="${getPosterStyle(r)}" onclick="setFilter('${r}')">
                     <span class="text-2xl font-bold text-white">${r}</span>
                 </div>
             `).join('');
         }
 
+        window.toggleLike = async (id) => {
+            const r = state.reviews.find(x => x.id === id);
+            await updateDoc(doc(db, 'reviews', id), { likedBy: (r.likedBy || []).includes(state.currentUser.uid) ? arrayRemove(state.currentUser.uid) : arrayUnion(state.currentUser.uid) });
+        };
+
         window.saveUsername = () => {
             const val = document.getElementById('username-input').value.trim();
-            if(val) {
-                localStorage.setItem('busboxxd_username', val);
-                state.username = val;
-                document.getElementById('profile-name').innerText = val;
-                document.getElementById('usernameModal').style.display = 'none';
-            }
+            if(val) { localStorage.setItem('busboxxd_username', val); state.username = val; document.getElementById('profile-name').innerText = val; document.getElementById('profile-avatar').innerText = getInitials(val); document.getElementById('usernameModal').style.display = 'none'; }
         };
 
         window.submitReview = async () => {
             const route = document.getElementById('route-input').value.trim().toUpperCase();
             const text = document.getElementById('review-input').value.trim();
             if(!route || !text || currentRating === 0) return alert("All fields required");
-            await addDoc(collection(db, "reviews"), { 
-                username: state.username || 'Anonymous', route, rating: currentRating, text, timestamp: Date.now(), likedBy: [] 
-            });
+            await addDoc(collection(db, "reviews"), { username: state.username, route, rating: currentRating, text, timestamp: Date.now(), likedBy: [] });
             document.getElementById('logModal').style.display = 'none';
         };
 
-        signInAnonymously(auth);
-        onSnapshot(query(collection(db, "reviews"), orderBy("timestamp", "desc")), (snap) => {
-            state.reviews = snap.docs.map(d => ({id: d.id, ...d.data()}));
-            render();
+        onAuthStateChanged(auth, (u) => { 
+            state.currentUser = u; 
+            onSnapshot(query(collection(db, "reviews"), orderBy("timestamp", "desc")), (snap) => {
+                state.reviews = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                document.getElementById('stat-total').innerText = state.reviews.length;
+                document.getElementById('stat-rating').innerText = state.reviews.length ? (state.reviews.reduce((a,b) => a+(b.rating||0),0)/state.reviews.length).toFixed(1) : "0.0";
+                renderFeed(); renderActiveRoutes();
+            });
         });
 
+        signInAnonymously(auth);
         state.username = localStorage.getItem('busboxxd_username');
-        if(state.username) document.getElementById('profile-name').innerText = state.username;
+        if(state.username) { document.getElementById('profile-name').innerText = state.username; document.getElementById('profile-avatar').innerText = getInitials(state.username); }
         else document.getElementById('usernameModal').style.display = 'flex';
     </script>
 </body>
 </html>
+#stop looking at my code 
