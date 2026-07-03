@@ -13,7 +13,6 @@
             --bb-panel: #2c3440;
             --bb-text-main: #99aabb;
             --bb-text-light: #def;
-            --bb-text-dark: #899aa9;
             --bb-green: #00e054;
             --bb-blue: #40bcf4;
             --bb-orange: #ff8000;
@@ -32,13 +31,8 @@
         ::-webkit-scrollbar-thumb:hover { background: #45505e; }
 
         h1, h2, h3, h4, .title-text { color: var(--bb-text-light); }
-        a { color: var(--bb-text-main); transition: color 0.15s ease; }
-        a:hover { color: #fff; }
-
-        .site-header {
-            background-color: #1a2127;
-            border-bottom: 1px solid #232a31;
-        }
+        
+        .site-header { background-color: #1a2127; border-bottom: 1px solid #232a31; }
 
         .poster {
             aspect-ratio: 2 / 3;
@@ -52,16 +46,9 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            cursor: pointer;
         }
         
-        .poster-overlay {
-            position: absolute;
-            inset: 0;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 4px;
-            pointer-events: none;
-        }
-
         .review-card {
             background-color: #1a2127;
             border: 1px solid #2c3440;
@@ -70,10 +57,7 @@
             margin-bottom: 1rem;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-        .review-card:hover { 
-            border-color: #45505e; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
-        }
+        .review-card:hover { border-color: #45505e; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 
         .avatar {
             width: 32px;
@@ -112,9 +96,9 @@
     <header class="site-header py-4 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between sticky top-0 z-50">
         <div class="flex items-center gap-2 mb-4 md:mb-0 cursor-pointer" onclick="window.location.reload()">
             <div class="flex gap-1">
-                <div class="w-3 h-3 rounded-full" style="background-color: var(--bb-green)"></div>
-                <div class="w-3 h-3 rounded-full" style="background-color: var(--bb-orange)"></div>
-                <div class="w-3 h-3 rounded-full" style="background-color: var(--bb-blue)"></div>
+                <div class="w-3 h-3 rounded-full bg-[var(--bb-green)]"></div>
+                <div class="w-3 h-3 rounded-full bg-[var(--bb-orange)]"></div>
+                <div class="w-3 h-3 rounded-full bg-[var(--bb-blue)]"></div>
             </div>
             <h1 class="text-2xl font-bold tracking-tight text-white m-0 leading-none">BusBoxxd</h1>
         </div>
@@ -128,7 +112,6 @@
     </header>
 
     <main class="max-w-5xl mx-auto px-6 py-8">
-        
         <section class="mb-12">
             <div class="flex justify-between items-end border-b border-[#2c3440] pb-2 mb-4">
                 <h3 class="text-sm font-semibold uppercase tracking-wider text-[#899aa9]">Recently Active Routes</h3>
@@ -141,7 +124,6 @@
                 <div class="flex justify-between items-end border-b border-[#2c3440] pb-2 mb-4">
                     <h3 class="text-sm font-semibold uppercase tracking-wider text-[#899aa9]">Recent Community Reviews</h3>
                 </div>
-
                 <div id="filter-indicator" class="hidden"></div>
                 <div id="feed-container" class="space-y-4"></div>
                 <div id="empty-feed-msg" class="hidden text-center py-12 bg-[#1a2127] rounded-lg border border-[#2c3440] mt-4">
@@ -158,7 +140,6 @@
                             <span class="text-xs text-[#899aa9]">Commuter</span>
                         </div>
                     </div>
-
                     <h3 class="text-xs font-semibold uppercase tracking-wider text-[#899aa9] mb-3">Community Stats</h3>
                     <div class="flex justify-between items-center mb-3">
                         <span class="text-sm text-white">Total Logs</span>
@@ -187,19 +168,12 @@
                 <h2 class="text-lg font-bold text-white">Log a Journey</h2>
                 <button onclick="document.getElementById('logModal').style.display='none'" class="text-[#899aa9] hover:text-white text-2xl leading-none">&times;</button>
             </div>
-            
             <div class="space-y-5">
-                <input type="text" id="route-input" placeholder="Route (e.g. 15)" class="w-full bg-[#14181c] border border-[#45505e] rounded p-2.5 text-white outline-none focus:border-[#00e054] uppercase font-bold">
-                <textarea id="review-input" rows="3" placeholder="How was the journey?" class="w-full bg-[#14181c] border border-[#45505e] rounded p-2.5 text-white outline-none focus:border-[#00e054] resize-none"></textarea>
+                <input type="text" id="route-input" placeholder="Route (e.g. 15)" class="w-full bg-[#14181c] border border-[#45505e] rounded p-2.5 text-white outline-none uppercase font-bold">
+                <textarea id="review-input" rows="3" placeholder="How was the journey?" class="w-full bg-[#14181c] border border-[#45505e] rounded p-2.5 text-white outline-none resize-none"></textarea>
                 <div class="flex items-center justify-between gap-4 mt-2 pt-4 border-t border-[#45505e]">
-                    <div class="text-2xl cursor-pointer tracking-widest flex" id="interactive-stars">
-                        <span onclick="setRating(1)" class="text-[#45505e] hover:text-[#00e054]">★</span>
-                        <span onclick="setRating(2)" class="text-[#45505e] hover:text-[#00e054]">★</span>
-                        <span onclick="setRating(3)" class="text-[#45505e] hover:text-[#00e054]">★</span>
-                        <span onclick="setRating(4)" class="text-[#45505e] hover:text-[#00e054]">★</span>
-                        <span onclick="setRating(5)" class="text-[#45505e] hover:text-[#00e054]">★</span>
-                    </div>
-                    <button onclick="submitReview()" class="btn-green">Save</button>
+                    <div id="interactive-stars" class="text-2xl cursor-pointer tracking-widest flex"></div>
+                    <button onclick="submitReview()" class="btn-green w-full sm:w-auto">Save to Diary</button>
                 </div>
             </div>
         </div>
@@ -223,32 +197,46 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const state = { reviews: [], currentUser: null, username: '', filterRoute: null, searchQuery: '' };
+        let state = { reviews: [], username: '', filterRoute: null, searchQuery: '', currentUser: null };
         let currentRating = 0;
 
-        function getInitials(name) { return name.charAt(0).toUpperCase(); }
-
+        function getInitials(name) { return (name || 'A')[0].toUpperCase(); }
         function getPosterStyle(route) {
-            let hash = 0; for (let i = 0; i < route.length; i++) hash = route.charCodeAt(i) + ((hash << 5) - hash);
+            let hash = 0; for(let i=0; i<route.length; i++) hash = route.charCodeAt(i) + ((hash<<5)-hash);
             const hue = Math.abs(hash) % 360;
             return `background: linear-gradient(135deg, hsl(${hue}, 70%, 40%), hsl(${(hue+40)%360}, 70%, 60%));`;
         }
 
-        window.setSearch = (val) => { state.searchQuery = val.toLowerCase(); renderFeed(); };
-        window.setFilter = (route) => { state.filterRoute = route; renderFeed(); renderActiveRoutes(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
-        window.clearFilter = () => { state.filterRoute = null; renderFeed(); renderActiveRoutes(); };
-        window.setRating = (r) => { currentRating = r; document.getElementById('interactive-stars').innerHTML = '★'.repeat(r) + '<span class="text-[#45505e]">' + '★'.repeat(5 - r) + '</span>'; };
+        window.setRating = (r) => {
+            currentRating = r;
+            const container = document.getElementById('interactive-stars');
+            container.innerHTML = '';
+            for(let i=1; i<=5; i++) {
+                const s = document.createElement('span');
+                s.innerText = '★';
+                s.className = (i <= r) ? 'text-[#00e054]' : 'text-[#45505e]';
+                s.onclick = () => setRating(i);
+                container.appendChild(s);
+            }
+        };
 
-        function renderFeed() {
-            const container = document.getElementById('feed-container');
-            const emptyMsg = document.getElementById('empty-feed-msg');
+        window.setSearch = (val) => { state.searchQuery = val.toLowerCase(); render(); };
+        window.setFilter = (route) => { state.filterRoute = route; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+        window.clearFilter = () => { state.filterRoute = null; render(); };
+
+        function render() {
+            const feed = document.getElementById('feed-container');
+            const grid = document.getElementById('active-routes-grid');
             const filterInd = document.getElementById('filter-indicator');
             
             let filtered = state.reviews;
             if (state.filterRoute) filtered = filtered.filter(r => r.route === state.filterRoute);
             if (state.searchQuery) filtered = filtered.filter(r => r.route.toLowerCase().includes(state.searchQuery) || r.text.toLowerCase().includes(state.searchQuery) || (r.username||'').toLowerCase().includes(state.searchQuery));
 
-            if (state.filterRoute) {
+            document.getElementById('stat-total').innerText = state.reviews.length;
+            document.getElementById('stat-rating').innerText = state.reviews.length ? (state.reviews.reduce((a,b) => a+(b.rating||0), 0)/state.reviews.length).toFixed(1) : "0.0";
+
+            if(state.filterRoute) {
                 filterInd.innerHTML = `<div class="bg-[#2c3440] p-3 mb-4 rounded flex justify-between items-center text-sm text-white border border-[#45505e]">
                     <span>Viewing <b>Route ${state.filterRoute}</b></span>
                     <button onclick="clearFilter()" class="text-xs text-[#899aa9] hover:text-white underline">Clear</button>
@@ -256,46 +244,35 @@
                 filterInd.classList.remove('hidden');
             } else filterInd.classList.add('hidden');
 
-            if (filtered.length === 0) { container.innerHTML = ''; emptyMsg.classList.remove('hidden'); }
-            else { emptyMsg.classList.add('hidden'); container.innerHTML = filtered.map(r => {
-                const isLiked = state.currentUser && (r.likedBy || []).includes(state.currentUser.uid);
-                return `
+            feed.innerHTML = filtered.map(r => `
                 <div class="review-card flex gap-4">
                     <div class="w-16 h-24 flex-shrink-0 poster flex flex-col justify-center items-center" style="${getPosterStyle(r.route)}">
                         <span class="text-lg font-bold text-white">${r.route}</span>
                     </div>
-                    <div class="flex-1">
+                    <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-3 mb-2">
-                            <div class="avatar">${getInitials(r.username || 'A')}</div>
-                            <span class="font-bold text-white text-sm">${r.username || 'Anonymous'}</span>
-                            <span class="ml-auto stars">${'★'.repeat(r.rating)}${'<span class="text-[#45505e]">★</span>'.repeat(5-r.rating)}</span>
+                            <div class="avatar">${getInitials(r.username)}</div>
+                            <span class="font-bold text-white text-sm truncate">${r.username || 'Anonymous'}</span>
+                            <span class="ml-auto stars">${'★'.repeat(r.rating || 0)}</span>
                         </div>
-                        <p class="text-sm text-[#def] mb-3">"${r.text}"</p>
-                        <button onclick="toggleLike('${r.id}')" class="text-xs font-bold ${isLiked ? 'text-red-500' : 'text-[#899aa9]'}">♥ ${r.likedBy?.length || 0}</button>
+                        <p class="text-sm text-[#def] mb-3 break-words whitespace-pre-wrap">"${r.text}"</p>
+                        <button onclick="toggleLike('${r.id}', ${JSON.stringify(r.likedBy || [])})" class="text-xs font-bold ${r.likedBy?.includes(state.currentUser?.uid) ? 'text-red-500' : 'text-[#899aa9]'}">♥ ${r.likedBy?.length || 0}</button>
                     </div>
                 </div>
-                `;
-            }).join(''); }
-        }
-
-        function renderActiveRoutes() {
-            const grid = document.getElementById('active-routes-grid');
-            const routes = [...new Set(state.reviews.map(r => r.route))].slice(0, 6);
-            grid.innerHTML = routes.map(r => `
-                <div class="poster w-full" style="${getPosterStyle(r)}" onclick="setFilter('${r}')">
-                    <span class="text-2xl font-bold text-white">${r}</span>
-                </div>
             `).join('');
+
+            const routes = [...new Set(state.reviews.map(r => r.route))].slice(0, 6);
+            grid.innerHTML = routes.map(r => `<div class="poster w-full" style="${getPosterStyle(r)}" onclick="setFilter('${r}')"><span class="text-2xl font-bold text-white">${r}</span></div>`).join('');
         }
 
-        window.toggleLike = async (id) => {
-            const r = state.reviews.find(x => x.id === id);
-            await updateDoc(doc(db, 'reviews', id), { likedBy: (r.likedBy || []).includes(state.currentUser.uid) ? arrayRemove(state.currentUser.uid) : arrayUnion(state.currentUser.uid) });
+        window.toggleLike = async (id, likedBy) => {
+            if(!state.currentUser) return;
+            await updateDoc(doc(db, 'reviews', id), { likedBy: likedBy.includes(state.currentUser.uid) ? arrayRemove(state.currentUser.uid) : arrayUnion(state.currentUser.uid) });
         };
 
         window.saveUsername = () => {
-            const val = document.getElementById('username-input').value.trim();
-            if(val) { localStorage.setItem('busboxxd_username', val); state.username = val; document.getElementById('profile-name').innerText = val; document.getElementById('profile-avatar').innerText = getInitials(val); document.getElementById('usernameModal').style.display = 'none'; }
+            const name = document.getElementById('username-input').value.trim();
+            if(name) { localStorage.setItem('busboxxd_username', name); state.username = name; document.getElementById('profile-name').innerText = name; document.getElementById('profile-avatar').innerText = getInitials(name); document.getElementById('usernameModal').style.display = 'none'; }
         };
 
         window.submitReview = async () => {
@@ -310,13 +287,12 @@
             state.currentUser = u; 
             onSnapshot(query(collection(db, "reviews"), orderBy("timestamp", "desc")), (snap) => {
                 state.reviews = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                document.getElementById('stat-total').innerText = state.reviews.length;
-                document.getElementById('stat-rating').innerText = state.reviews.length ? (state.reviews.reduce((a,b) => a+(b.rating||0),0)/state.reviews.length).toFixed(1) : "0.0";
-                renderFeed(); renderActiveRoutes();
+                render();
             });
         });
-
+        
         signInAnonymously(auth);
+        setRating(0);
         state.username = localStorage.getItem('busboxxd_username');
         if(state.username) { document.getElementById('profile-name').innerText = state.username; document.getElementById('profile-avatar').innerText = getInitials(state.username); }
         else document.getElementById('usernameModal').style.display = 'flex';
