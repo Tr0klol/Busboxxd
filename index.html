@@ -306,15 +306,32 @@
             username: ''
         };
 
-        function getPosterClass(route) {
-            const r = (route || '').toLowerCase();
-            if (r === '46a') return 'bus-46a';
-            if (r === '15') return 'bus-15';
-            if (r === '140') return 'bus-140';
-            if (r === '39a') return 'bus-39a';
-            if (r === 'c1') return 'bus-c1';
-            if (r === 'g1') return 'bus-g1';
-            return 'bus-generic';
+        function getPosterStyle(route) {
+            const r = (route || '').toLowerCase().trim();
+            // Keep the classics
+            if (r === '46a') return 'background: linear-gradient(135deg, #0f4c81, #f5d04c);';
+            if (r === '15') return 'background: linear-gradient(to bottom, #d32f2f, #111);';
+            if (r === '140') return 'background: linear-gradient(135deg, #333, #555); opacity: 0.9;';
+            if (r === '39a') return 'background: linear-gradient(45deg, #2e7d32, #ffeb3b);';
+            if (r === 'c1') return 'background: linear-gradient(to top, #1a237e, #000000);';
+            if (r === 'g1') return 'background: linear-gradient(135deg, #00838f, #80deea);';
+
+            // Generate a vibrant, deterministic gradient for EVERY other bus route
+            const colors = [
+                ['#FF416C', '#FF4B2B'], ['#4776E6', '#8E54E9'], ['#00B4DB', '#0083B0'],
+                ['#f12711', '#f5af19'], ['#8E2DE2', '#4A00E0'], ['#11998e', '#38ef7d'],
+                ['#F2994A', '#F2C94C'], ['#E55D87', '#5FC3E4'], ['#b92b27', '#1565C0'],
+                ['#2980B9', '#6DD5FA'], ['#FF0099', '#493240'], ['#800080', '#ffc0cb']
+            ];
+            
+            let hash = 0;
+            for (let i = 0; i < r.length; i++) {
+                hash = r.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const index = Math.abs(hash) % colors.length;
+            const [c1, c2] = colors[index];
+            
+            return `background: linear-gradient(135deg, ${c1}, ${c2});`;
         }
 
         function generateStarsHTML(rating) {
@@ -324,8 +341,8 @@
 
         function renderPostersHTML(route, rating) {
             return `
-                <div class="poster ${getPosterClass(route)} w-full h-full shadow-md">
-                    <span class="text-xl font-bold text-white z-10">${(route || '').toUpperCase()}</span>
+                <div class="poster w-full h-full shadow-md flex flex-col justify-center items-center" style="${getPosterStyle(route)}">
+                    <span class="text-xl font-bold text-white z-10">${(route || '?').toUpperCase()}</span>
                     <div class="poster-overlay"></div>
                 </div>
             `;
@@ -416,8 +433,8 @@
             grid.innerHTML = uniqueRoutes.map(review => {
                 return `
                 <div class="group relative">
-                    <div class="w-full h-32 md:h-40 ${getPosterClass(review.route)} rounded-md shadow-md flex flex-col justify-center items-center border border-transparent hover:border-[#00e054] transition-all cursor-pointer">
-                        <span class="text-2xl md:text-3xl font-bold text-white z-10">${review.route.toUpperCase()}</span>
+                    <div class="w-full h-32 md:h-40 rounded-md shadow-md flex flex-col justify-center items-center border border-transparent hover:border-[#00e054] transition-all cursor-pointer" style="${getPosterStyle(review.route)}">
+                        <span class="text-2xl md:text-3xl font-bold text-white z-10">${(review.route || '?').toUpperCase()}</span>
                         <div class="absolute inset-0 border border-white/10 rounded-md pointer-events-none"></div>
                     </div>
                     <div class="absolute -bottom-6 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity">
