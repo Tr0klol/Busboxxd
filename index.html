@@ -103,9 +103,14 @@
             <h1 class="text-2xl font-bold tracking-tight text-white m-0 leading-none">BusBoxxd</h1>
         </div>
 
-        <div class="flex items-center gap-4">
-            <input type="text" id="search-input" oninput="setSearch(this.value)" placeholder="Search reviews..." class="bg-[#1a2127] border border-[#2c3440] text-sm text-white px-4 py-2 rounded-full outline-none focus:border-[var(--bb-green)] w-48 lg:w-64">
-            <button onclick="document.getElementById('logModal').style.display='flex'" class="btn-green text-sm px-4 py-2 shadow-[0_0_15px_rgba(0,224,84,0.3)]">
+        <div class="flex items-center gap-3">
+            <select id="sort-select" onchange="setSort(this.value)" class="hidden md:block bg-[#1a2127] border border-[#2c3440] text-sm text-[#899aa9] hover:text-white px-3 py-2 rounded-full outline-none focus:border-[var(--bb-green)] cursor-pointer">
+                <option value="newest">Newest</option>
+                <option value="rating">Highest Rated</option>
+                <option value="liked">Most Liked</option>
+            </select>
+            <input type="text" id="search-input" oninput="setSearch(this.value)" placeholder="Search reviews..." class="bg-[#1a2127] border border-[#2c3440] text-sm text-white px-4 py-2 rounded-full outline-none focus:border-[var(--bb-green)] w-40 md:w-48 lg:w-64">
+            <button onclick="document.getElementById('log-error').classList.add('hidden'); document.getElementById('logModal').style.display='flex'" class="btn-green text-sm px-4 py-2 shadow-[0_0_15px_rgba(0,224,84,0.3)] whitespace-nowrap">
                 + Log Journey
             </button>
         </div>
@@ -115,6 +120,12 @@
         <section class="mb-12">
             <div class="flex justify-between items-end border-b border-[#2c3440] pb-2 mb-4">
                 <h3 class="text-sm font-semibold uppercase tracking-wider text-[#899aa9]">Recently Active Routes</h3>
+                
+                <!-- Follow Link -->
+                <a href="https://www.instagram.com/tr0k.lol/" target="_blank" rel="noopener noreferrer" class="text-xs text-[#899aa9] hover:text-[#00e054] transition-colors duration-200 flex items-center gap-1.5 pb-0.5">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clip-rule="evenodd" /></svg>
+                    @tr0k.lol
+                </a>
             </div>
             <div id="active-routes-grid" class="grid grid-cols-3 md:grid-cols-6 gap-4"></div>
         </section>
@@ -126,6 +137,9 @@
                 </div>
                 <div id="filter-indicator" class="hidden"></div>
                 <div id="feed-container" class="space-y-4"></div>
+                <div class="mt-6 flex justify-center">
+                    <button id="load-more-btn" onclick="loadMore()" class="hidden bg-[#2c3440] hover:bg-[#45505e] text-white text-sm font-semibold py-2 px-6 rounded-full transition-colors border border-[#45505e]">Load More</button>
+                </div>
                 <div id="empty-feed-msg" class="hidden text-center py-12 bg-[#1a2127] rounded-lg border border-[#2c3440] mt-4">
                     <p class="text-[#899aa9] mb-4">No reviews found.</p>
                 </div>
@@ -149,14 +163,6 @@
                         <span class="text-sm text-white">Average Rating</span>
                         <span id="stat-rating" class="text-sm font-bold text-[#00e054]">0.0</span>
                     </div>
-                    
-                  
-                    <div class="mt-6 pt-4 border-t border-[#45505e] text-center flex justify-center">
-                        <a href="https://www.instagram.com/tr0k.lol/" target="_blank" rel="noopener noreferrer" class="text-xs text-[#899aa9] hover:text-[#00e054] transition-colors duration-200 flex items-center gap-1">
-                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clip-rule="evenodd" /></svg>
-                            Follow @tr0k.lol
-                        </a>
-                    </div>
                 </div>
             </aside>
         </div>
@@ -177,6 +183,7 @@
                 <button onclick="document.getElementById('logModal').style.display='none'" class="text-[#899aa9] hover:text-white text-2xl leading-none">&times;</button>
             </div>
             <div class="space-y-5">
+                <p id="log-error" class="text-red-500 text-sm font-semibold hidden mb-[-10px]"></p>
                 <input type="text" id="route-input" placeholder="Route (e.g. 15)" class="w-full bg-[#14181c] border border-[#45505e] rounded p-2.5 text-white outline-none uppercase font-bold">
                 <textarea id="review-input" rows="3" placeholder="How was the journey?" class="w-full bg-[#14181c] border border-[#45505e] rounded p-2.5 text-white outline-none resize-none"></textarea>
                 <div class="flex items-center justify-between gap-4 mt-2 pt-4 border-t border-[#45505e]">
@@ -190,7 +197,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, arrayRemove, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBS2oBGJmDaxiBjMo45tznE7JfNjOe4va0",
@@ -205,14 +212,35 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let state = { reviews: [], username: '', filterRoute: null, searchQuery: '', currentUser: null };
+        let state = { reviews: [], username: '', filterRoute: null, searchQuery: '', sortBy: 'newest', currentUser: null };
         let currentRating = 0;
+        let reviewLimit = 20;
+        let unsubscribeReviews = null;
+        let isLoading = true;
 
         function getInitials(name) { return (name || 'A')[0].toUpperCase(); }
+        
         function getPosterStyle(route) {
             let hash = 0; for(let i=0; i<route.length; i++) hash = route.charCodeAt(i) + ((hash<<5)-hash);
             const hue = Math.abs(hash) % 360;
             return `background: linear-gradient(135deg, hsl(${hue}, 70%, 40%), hsl(${(hue+40)%360}, 70%, 60%));`;
+        }
+
+        // Convert timestamp to "2h ago", "just now", etc.
+        function timeAgo(ts) {
+            if (!ts) return '';
+            const seconds = Math.floor((Date.now() - ts) / 1000);
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + "y ago";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + "mo ago";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + "d ago";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + "h ago";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + "m ago";
+            return "just now";
         }
 
         window.setRating = (r) => {
@@ -229,18 +257,54 @@
         };
 
         window.setSearch = (val) => { state.searchQuery = val.toLowerCase(); render(); };
+        window.setSort = (val) => { state.sortBy = val; render(); };
         window.setFilter = (route) => { state.filterRoute = route; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
         window.clearFilter = () => { state.filterRoute = null; render(); };
+
+        window.loadMore = () => { 
+            reviewLimit += 20; 
+            listenToReviews(); 
+        };
 
         function render() {
             const feed = document.getElementById('feed-container');
             const grid = document.getElementById('active-routes-grid');
             const filterInd = document.getElementById('filter-indicator');
+            const emptyMsg = document.getElementById('empty-feed-msg');
+            const loadMoreBtn = document.getElementById('load-more-btn');
+
+            if (isLoading) {
+                // Skeletons for Loading State
+                feed.innerHTML = Array(3).fill(0).map(() => `
+                    <div class="review-card flex gap-4 animate-pulse">
+                        <div class="w-16 h-24 flex-shrink-0 bg-[#2c3440] rounded"></div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-8 h-8 rounded-full bg-[#2c3440]"></div>
+                                <div class="h-4 w-24 bg-[#2c3440] rounded"></div>
+                            </div>
+                            <div class="h-3 w-full bg-[#2c3440] rounded mb-2"></div>
+                            <div class="h-3 w-3/4 bg-[#2c3440] rounded"></div>
+                        </div>
+                    </div>
+                `).join('');
+                emptyMsg.classList.add('hidden');
+                if (loadMoreBtn) loadMoreBtn.classList.add('hidden');
+                return;
+            }
             
-            let filtered = state.reviews;
+            let filtered = [...state.reviews];
+
+            // Apply Filters
             if (state.filterRoute) filtered = filtered.filter(r => r.route === state.filterRoute);
             if (state.searchQuery) filtered = filtered.filter(r => r.route.toLowerCase().includes(state.searchQuery) || r.text.toLowerCase().includes(state.searchQuery) || (r.username||'').toLowerCase().includes(state.searchQuery));
 
+            // Apply Local Sorting
+            if (state.sortBy === 'newest') filtered.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            else if (state.sortBy === 'rating') filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+            else if (state.sortBy === 'liked') filtered.sort((a, b) => (b.likedBy?.length || 0) - (a.likedBy?.length || 0));
+
+            // Update Stats
             document.getElementById('stat-total').innerText = state.reviews.length;
             document.getElementById('stat-rating').innerText = state.reviews.length ? (state.reviews.reduce((a,b) => a+(b.rating||0), 0)/state.reviews.length).toFixed(1) : "0.0";
 
@@ -252,22 +316,39 @@
                 filterInd.classList.remove('hidden');
             } else filterInd.classList.add('hidden');
 
-            feed.innerHTML = filtered.map(r => `
-                <div class="review-card flex gap-4">
-                    <div class="w-16 h-24 flex-shrink-0 poster flex flex-col justify-center items-center" style="${getPosterStyle(r.route)}">
-                        <span class="text-lg font-bold text-white">${r.route}</span>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-3 mb-2">
-                            <div class="avatar">${getInitials(r.username)}</div>
-                            <span class="font-bold text-white text-sm truncate">${r.username || 'Anonymous'}</span>
-                            <span class="ml-auto stars">${'★'.repeat(r.rating || 0)}</span>
+            if (filtered.length === 0) {
+                feed.innerHTML = '';
+                emptyMsg.classList.remove('hidden');
+            } else {
+                emptyMsg.classList.add('hidden');
+                feed.innerHTML = filtered.map(r => `
+                    <div class="review-card flex gap-4">
+                        <div class="w-16 h-24 flex-shrink-0 poster flex flex-col justify-center items-center" style="${getPosterStyle(r.route)}">
+                            <span class="text-lg font-bold text-white">${r.route}</span>
                         </div>
-                        <p class="text-sm text-[#def] mb-3 break-words whitespace-pre-wrap">"${r.text}"</p>
-                        <button onclick="toggleLike('${r.id}', ${JSON.stringify(r.likedBy || [])})" class="text-xs font-bold ${r.likedBy?.includes(state.currentUser?.uid) ? 'text-red-500' : 'text-[#899aa9]'}">♥ ${r.likedBy?.length || 0}</button>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="avatar">${getInitials(r.username)}</div>
+                                <div class="flex items-baseline gap-2 truncate">
+                                    <span class="font-bold text-white text-sm truncate">${r.username || 'Anonymous'}</span>
+                                    <span class="text-xs text-[#899aa9] font-normal whitespace-nowrap">${timeAgo(r.timestamp)}</span>
+                                </div>
+                                <span class="ml-auto stars whitespace-nowrap">${'★'.repeat(r.rating || 0)}</span>
+                            </div>
+                            <p class="text-sm text-[#def] mb-3 break-words whitespace-pre-wrap">"${r.text}"</p>
+                            <button onclick="toggleLike('${r.id}', ${JSON.stringify(r.likedBy || [])})" class="text-xs font-bold ${r.likedBy?.includes(state.currentUser?.uid) ? 'text-red-500' : 'text-[#899aa9]'} hover:opacity-80 transition-opacity">♥ ${r.likedBy?.length || 0}</button>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `).join('');
+            }
+
+            if (loadMoreBtn) {
+                if (state.reviews.length >= reviewLimit && !state.searchQuery && !state.filterRoute) {
+                    loadMoreBtn.classList.remove('hidden');
+                } else {
+                    loadMoreBtn.classList.add('hidden');
+                }
+            }
 
             const routes = [...new Set(state.reviews.map(r => r.route))].slice(0, 6);
             grid.innerHTML = routes.map(r => `<div class="poster w-full" style="${getPosterStyle(r)}" onclick="setFilter('${r}')"><span class="text-2xl font-bold text-white">${r}</span></div>`).join('');
@@ -284,19 +365,47 @@
         };
 
         window.submitReview = async () => {
+            const errorEl = document.getElementById('log-error');
+            errorEl.classList.add('hidden');
+            
+            const lastPost = localStorage.getItem('bb_last_post');
+            if (lastPost && Date.now() - parseInt(lastPost) < 60000) {
+                errorEl.innerText = "Please wait a minute before posting another review.";
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
             const route = document.getElementById('route-input').value.trim().toUpperCase();
             const text = document.getElementById('review-input').value.trim();
-            if(!route || !text || currentRating === 0) return alert("All fields required");
+            
+            if(!route || !text || currentRating === 0) {
+                errorEl.innerText = "All fields and a star rating are required.";
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            
             await addDoc(collection(db, "reviews"), { username: state.username, route, rating: currentRating, text, timestamp: Date.now(), likedBy: [] });
+            localStorage.setItem('bb_last_post', Date.now());
+            
+            // Clear inputs for next time
+            document.getElementById('route-input').value = '';
+            document.getElementById('review-input').value = '';
+            setRating(0);
             document.getElementById('logModal').style.display = 'none';
         };
 
-        onAuthStateChanged(auth, (u) => { 
-            state.currentUser = u; 
-            onSnapshot(query(collection(db, "reviews"), orderBy("timestamp", "desc")), (snap) => {
+        function listenToReviews() {
+            if (unsubscribeReviews) unsubscribeReviews();
+            unsubscribeReviews = onSnapshot(query(collection(db, "reviews"), orderBy("timestamp", "desc"), limit(reviewLimit)), (snap) => {
                 state.reviews = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                isLoading = false; // Turn off skeletons once data is received
                 render();
             });
+        }
+
+        onAuthStateChanged(auth, (u) => { 
+            state.currentUser = u; 
+            listenToReviews();
         });
         
         signInAnonymously(auth);
@@ -304,6 +413,7 @@
         state.username = localStorage.getItem('busboxxd_username');
         if(state.username) { document.getElementById('profile-name').innerText = state.username; document.getElementById('profile-avatar').innerText = getInitials(state.username); }
         else document.getElementById('usernameModal').style.display = 'flex';
+        render(); // Initial render for skeleton loading state
     </script>
 </body>
 </html>
