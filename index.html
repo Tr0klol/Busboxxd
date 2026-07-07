@@ -197,7 +197,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, arrayRemove, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, doc, updateDoc, arrayUnion, arrayRemove, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBS2oBGJmDaxiBjMo45tznE7JfNjOe4va0",
@@ -215,8 +215,11 @@
         let state = { reviews: [], username: '', filterRoute: null, searchQuery: '', sortBy: 'newest', currentUser: null };
         let currentRating = 0;
         let reviewLimit = 20;
-        let unsubscribeReviews = null;
         let isLoading = true;
+
+        const CACHE_KEY = 'bb_reviews_cache';
+        const CACHE_TIME_KEY = 'bb_reviews_time';
+        const CACHE_TTL = 3 * 60 * 1000; // 3 minutes in milliseconds
 
         function getInitials(name) { return (name || 'A')[0].toUpperCase(); }
         
@@ -263,7 +266,7 @@
 
         window.loadMore = () => { 
             reviewLimit += 20; 
-            listenToReviews(); 
+            fetchReviews(true); // Force fetch bypassing cache
         };
 
         function render() {
@@ -356,7 +359,25 @@
 
         window.toggleLike = async (id, likedBy) => {
             if(!state.currentUser) return;
-            await updateDoc(doc(db, 'reviews', id), { likedBy: likedBy.includes(state.currentUser.uid) ? arrayRemove(state.currentUser.uid) : arrayUnion(state.currentUser.uid) });
+            const uid = state.currentUser.uid;
+            const isLiked = likedBy.includes(uid);
+
+            // Optimistic UI update: instantly change the local state so the user feels no lag
+            const reviewIndex = state.reviews.findIndex(r => r.id === id);
+            if (reviewIndex > -1) {
+                if (isLiked) {
+                    state.reviews[reviewIndex].likedBy = state.reviews[reviewIndex].likedBy.filter(u => u !== uid);
+                } else {
+                    state.reviews[reviewIndex].likedBy = [...(state.reviews[reviewIndex].likedBy || []), uid];
+                }
+                localStorage.setItem(CACHE_KEY, JSON.stringify(state.reviews)); // Update cache
+                render();
+            }
+
+            // Send actual update to Firebase silently in the background
+            await updateDoc(doc(db, 'reviews', id), { 
+                likedBy: isLiked ? arrayRemove(uid) : arrayUnion(uid) 
+            });
         };
 
         window.saveUsername = () => {
@@ -384,8 +405,16 @@
                 return;
             }
             
-            await addDoc(collection(db, "reviews"), { username: state.username, route, rating: currentRating, text, timestamp: Date.now(), likedBy: [] });
+            const newReviewData = { username: state.username, route, rating: currentRating, text, timestamp: Date.now(), likedBy: [] };
+            
+            // Add to Firebase
+            const docRef = await addDoc(collection(db, "reviews"), newReviewData);
             localStorage.setItem('bb_last_post', Date.now());
+
+            // Optimistic UI update: inject the new post into the feed immediately
+            state.reviews.unshift({ id: docRef.id, ...newReviewData });
+            localStorage.setItem(CACHE_KEY, JSON.stringify(state.reviews));
+            render();
             
             // Clear inputs for next time
             document.getElementById('route-input').value = '';
@@ -394,18 +423,47 @@
             document.getElementById('logModal').style.display = 'none';
         };
 
-        function listenToReviews() {
-            if (unsubscribeReviews) unsubscribeReviews();
-            unsubscribeReviews = onSnapshot(query(collection(db, "reviews"), orderBy("timestamp", "desc"), limit(reviewLimit)), (snap) => {
-                state.reviews = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                isLoading = false; // Turn off skeletons once data is received
+        async function fetchReviews(force = false) {
+            const now = Date.now();
+            const cachedData = localStorage.getItem(CACHE_KEY);
+            const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+
+            // Check if we have valid cached data
+            if (cachedData && cachedTime) {
+                state.reviews = JSON.parse(cachedData);
+                isLoading = false;
                 render();
-            });
+                
+                // If cache is under 3 minutes old, and we aren't forcing a refresh, stop here to save reads!
+                if (!force && (now - parseInt(cachedTime)) < CACHE_TTL) {
+                    console.log("Loaded from cache. Skipping Firebase read.");
+                    return; 
+                }
+            }
+
+            isLoading = !cachedData; // Only show skeleton loaders if we have absolutely nothing to display
+            if (isLoading) render();
+
+            try {
+                const snap = await getDocs(query(collection(db, "reviews"), orderBy("timestamp", "desc"), limit(reviewLimit)));
+                state.reviews = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                
+                // Save new data to cache
+                localStorage.setItem(CACHE_KEY, JSON.stringify(state.reviews));
+                localStorage.setItem(CACHE_TIME_KEY, now.toString());
+                
+                isLoading = false;
+                render();
+            } catch (error) {
+                console.error("Firebase Read Error: ", error);
+                isLoading = false;
+                render();
+            }
         }
 
         onAuthStateChanged(auth, (u) => { 
             state.currentUser = u; 
-            listenToReviews();
+            fetchReviews();
         });
         
         signInAnonymously(auth);
