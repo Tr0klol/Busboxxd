@@ -645,12 +645,14 @@
             }
         }
 
-        onAuthStateChanged(auth, (u) => { 
-            state.currentUser = u; 
-            fetchReviews();
+        onAuthStateChanged(auth, (u) => {
+            state.currentUser = u;
+            if (u) fetchReviews();
         });
-        
-        signInAnonymously(auth);
+
+        signInAnonymously(auth).catch((error) => {
+            console.error("Firebase Anonymous Auth Error: ", error);
+        });
         setRating(0);
         
         state.username = localStorage.getItem('busboxxd_username');
